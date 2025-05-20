@@ -1,10 +1,6 @@
 package org.example;
 
-import liquibase.Liquibase;
-import liquibase.database.Database;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.resource.ClassLoaderResourceAccessor;
+import org.example.configuration.LiquibaseConfiguration;
 import org.example.dao.PassengerDao;
 import org.example.dao.TrainDao;
 import org.example.model.Passenger;
@@ -14,25 +10,35 @@ import org.example.model.Town;
 import org.example.util.ConnectionManager;
 import org.example.util.DateTimeUtils;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.DatabaseMetaData;
 import java.time.LocalDateTime;
 
+/**
+ * Класс демонстрации работы приложения с базой данных.
+ */
 public class JdbcRunner {
+    private final static String CHANGELOG_PATH = "db.changelogPath";
+
     public static void main(String[] args) throws SQLException {
-        try (Connection connection = ConnectionManager.open();
-             Statement statement = connection.createStatement()) {
+        Connection connection = null;
+        try {
+            connection = ConnectionManager.open();
 
-            Database database = DatabaseFactory.getInstance()
-                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-            Liquibase liquibase = new Liquibase(
-                    "liquibase/changelog-master.yml",
-                    new ClassLoaderResourceAccessor(),
-                    database);
-            liquibase.update();
+            try (Connection liquibaseConnection = ConnectionManager.open()) {
+                LiquibaseConfiguration liquibaseConfiguration = new LiquibaseConfiguration(CHANGELOG_PATH, connection);
+                liquibaseConfiguration.updateDatabase();
+                System.out.println("Созданы таблицы в базе данных: ");
+                checkMetaData(liquibaseConnection);
+                System.out.println("-------------------");
+            } catch (SQLException e) {
+                e.getMessage();
+            }
 
-            System.out.println("Созданы таблицы в базе данных: ");
-            checkMetaData(connection);
-            System.out.println("-------------------");
+            Statement statement = connection.createStatement();
 
             PassengerDao passengerDao = new PassengerDao(connection);
 
@@ -64,11 +70,11 @@ public class JdbcRunner {
                     "Москва", DateTimeUtils.parseDateTime("2025-05-09 10:55:00"));
             trainDao.create(newTrain);
             System.out.println("Добавлен поезд с ID " + newTrain.getId() + ": \n" + newTrain.getTrainName() + ", " + newTrain.getNumber() + ", " + newTrain.getTownFrom()
-                    +  " - " + newTrain.getTownTo() + ", время отбытия: " + newTrain.getTimeOut() + ", время прибытия: " + newTrain.getTimeIn());
+                    + " - " + newTrain.getTownTo() + ", время отбытия: " + newTrain.getTimeOut() + ", время прибытия: " + newTrain.getTimeIn());
             System.out.println("-------------------");
 
             Train trainById = trainDao.read(newTrain.getId());
-            System.out.println("Информация по поезду с ID " + trainById.getId() + ": \n" + trainById.getNumber() + ", "+ trainById.getTrainName()+ ", " + trainById.getTownFrom() +
+            System.out.println("Информация по поезду с ID " + trainById.getId() + ": \n" + trainById.getNumber() + ", " + trainById.getTrainName() + ", " + trainById.getTownFrom() +
                     " - " + trainById.getTownTo() + ", время отбытия: " + trainById.getTimeOut() + ", время прибытия: " + trainById.getTimeIn());
             System.out.println("-------------------");
 
@@ -117,22 +123,42 @@ public class JdbcRunner {
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.getMessage();
+            }
         }
     }
 
+    /**
+     * Выводит метаданные о структуре базы данных.
+     * Метод получает и выводит список всех таблиц в схеме "public".
+     *
+     * @param connection активное соединение с базой данных
+     * @throws SQLException если происходит ошибка при получении метаданных
+     */
     public static void checkMetaData(Connection connection) throws SQLException {
         DatabaseMetaData metaData = connection.getMetaData();
-        try (ResultSet schemas = metaData.getSchemas()) {
+        ResultSet schemas = null;
+        ResultSet tables = null;
+        try {
+            schemas = metaData.getSchemas();
             while (schemas.next()) {
                 String schema = schemas.getString("TABLE_SCHEM");
                 if ("public".equals(schema)) {
-                    try (ResultSet tables = metaData.getTables(null, schema, "%", new String[]{"TABLE"})) {
-                        while (tables.next()) {
-                            System.out.println(tables.getString("TABLE_NAME"));
-                        }
+                    tables = metaData.getTables(null, schema, "%", new String[]{"TABLE"});
+                    while (tables.next()) {
+                        System.out.println(tables.getString("TABLE_NAME"));
                     }
                 }
             }
+        } finally {
+            if (tables != null) tables.close();
+            if (schemas != null) schemas.close();
         }
     }
 }
