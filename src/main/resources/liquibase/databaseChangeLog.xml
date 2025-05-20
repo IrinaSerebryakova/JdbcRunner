@@ -1,0 +1,176 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    <changeSet id="1" author="IrinaSerebryakova">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="passenger"/>
+            </not>
+        </preConditions>
+        <createTable tableName="passenger">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="passenger_pkey"/>
+            </column>
+            <column name="first_name" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="IrinaSerebryakova">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="train"/>
+            </not>
+        </preConditions>
+        <createTable tableName="train">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="train_pkey"/>
+            </column>
+            <column name="number" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="train_name" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="town_from" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_out" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="town_to" type="varchar">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_in" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="IrinaSerebryakova">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="town"/>
+            </not>
+        </preConditions>
+        <createTable tableName="town">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="town_pkey"/>
+            </column>
+            <column name="town_name" type="varchar">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="4" author="IrinaSerebryakova">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pass_in_trip"/>
+            </not>
+        </preConditions>
+        <createTable tableName="pass_in_trip">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pass_in_trip_pkey"/>
+            </column>
+            <column name="pass_name" type="varchar"/>
+            <column name="train_number" type="varchar"/>
+            <column name="seat_number" type="varchar"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="5" author="IrinaSerebryakova">
+        <insert tableName="train">
+            <column name="number" value="751A"/>
+            <column name="train_name" value="Сапсан"/>
+            <column name="town_from" value="Санкт-Петербург"/>
+            <column name="time_out" value="2025-05-09 05:30:00"/>
+            <column name="town_to" value="Москва"/>
+            <column name="time_in" value="2025-05-09 09:20:00"/>
+        </insert>
+        <insert tableName="train">
+            <column name="number" value="723Р"/>
+            <column name="train_name" value="Ласточка"/>
+            <column name="town_from" value="Санкт-Петербург"/>
+            <column name="time_out" value="2025-05-09 05:35:00"/>
+            <column name="town_to" value="Москва"/>
+            <column name="time_in" value="2025-05-09 09:20:00"/>
+        </insert>
+        <insert tableName="train">
+            <column name="number" value="741У"/>
+            <column name="train_name" value="Аврора"/>
+            <column name="town_from" value="Санкт-Петербург"/>
+            <column name="time_out" value="2025-05-09 06:00:00"/>
+            <column name="town_to" value="Москва"/>
+            <column name="time_in" value="2025-05-09 11:30:00"/>
+        </insert>
+        <insert tableName="train">
+            <column name="number" value="747А"/>
+            <column name="train_name" value="Экспресс"/>
+            <column name="town_from" value="Санкт-Петербург"/>
+            <column name="time_out" value="2025-05-09 06:50:00"/>
+            <column name="town_to" value="Москва"/>
+            <column name="time_in" value="2025-05-09 11:00:00"/>
+        </insert>
+    </changeSet>
+    <changeSet id="6" author="IrinaSerebryakova">
+        <insert tableName="passenger">
+            <column name="first_name" value="Дмитрий"/>
+            <column name="last_name" value="Петров"/>
+        </insert>
+        <insert tableName="passenger">
+            <column name="first_name" value="Светлана"/>
+            <column name="last_name" value="Коняева"/>
+        </insert>
+        <insert tableName="passenger">
+            <column name="first_name" value="Борис"/>
+            <column name="last_name" value="Светлаков"/>
+        </insert>
+        <insert tableName="passenger">
+            <column name="first_name" value="Елена"/>
+            <column name="last_name" value="Чеснокова"/>
+        </insert>
+    </changeSet>
+    <changeSet id="7" author="IrinaSerebryakova">
+        <insert tableName="town">
+            <column name="town_name" value="Москва"/>
+        </insert>
+        <insert tableName="town">
+            <column name="town_name" value="Санкт-Петербург"/>
+        </insert>
+        <insert tableName="town">
+            <column name="town_name" value="Архангельск"/>
+        </insert>
+        <insert tableName="town">
+            <column name="town_name" value="Калининград"/>
+        </insert>
+    </changeSet>
+    <changeSet id="8" author="IrinaSerebryakova">
+        <insert tableName="pass_in_trip">
+            <column name="pass_name" value="Дмитрий Петров"/>
+            <column name="train_number" value="741У"/>
+            <column name="seat_number" value="42"/>
+        </insert>
+        <insert tableName="pass_in_trip">
+            <column name="pass_name" value="Светлана Коняева"/>
+            <column name="train_number" value="723Р"/>
+            <column name="seat_number" value="53"/>
+        </insert>
+        <insert tableName="pass_in_trip">
+            <column name="pass_name" value="Борис Светлаков"/>
+            <column name="train_number" value="751A"/>
+            <column name="seat_number" value="96"/>
+        </insert>
+        <insert tableName="pass_in_trip">
+            <column name="pass_name" value="Елена Чеснокова"/>
+            <column name="train_number" value="747А"/>
+            <column name="seat_number" value="21"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
+
+
+
+
